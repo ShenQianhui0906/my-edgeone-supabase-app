@@ -437,7 +437,7 @@
     @media (max-width: 720px) { .page-shell { padding: 16px; } .auth-shell, .auth-feature-grid, .stats-strip, .focus-inline { grid-template-columns: 1fr; } .auth-stage, .auth-card, .section-shell, .panel-card, .contact-panel, .chat-panel, .hero-panel, .overview-primary, .overview-side > .surface, .placeholder-card, .sheet-panel, .dialog-card, .toast-card { padding: 22px; } .workspace-copy h2 { font-size: 32px; } .command-trigger { width: 100%; min-width: 0; } .library-strip { grid-auto-columns: minmax(200px, 1fr); } .courseware-frame { min-height: 60vh; } .ai-fab { right: 16px; left: 16px; bottom: 16px; justify-content: center; } }
   </style>
   <!-- Supabase JS SDK (UMD, 暴露 window.supabase) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -448,9 +448,10 @@
     const SUPABASE_URL      = 'https://ovncniadsdrxvsadtath.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_FDPNUtIDEwsQFR_ji_zEnA_N9gtoDwY';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // 将 Supabase User 对象映射成应用内通用的 user 格式
+
     function mapSupabaseUser(sbUser) {
       const meta = sbUser.user_metadata || {};
       return {
@@ -779,7 +780,7 @@
 
     async function bootstrap() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) { stopMessagePolling(); renderAuth(); return; }
         state.token = session.access_token;
         state.user  = mapSupabaseUser(session.user);
@@ -844,7 +845,7 @@
       if (!username) { setStatus("请输入用户名", "error"); return; }
       try {
         setStatus("登录中...");
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
           email:    username + "@user.local",
           password: password,
         });
@@ -866,7 +867,7 @@
       if (username.length < 3) { setStatus("用户名至少 3 个字符", "error"); return; }
       try {
         setStatus("注册中...");
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await supabaseClient.auth.signUp({
           email:    username + "@user.local",
           password: password,
           options:  { data: { username, display_name: username, role, student_number: null } },
@@ -884,7 +885,7 @@
     }
 
     async function handleLogout() {
-      try { await supabase.auth.signOut(); } catch (error) {}
+      try { await supabaseClient.auth.signOut(); } catch (error) {}
       stopMessagePolling(); closeSheet(); state.aiDrawerOpen = false; state.token = ""; state.user = null; state.messageEventCursor = 0; state.editingManagedUserId = null; renderAuth();
     }
 
